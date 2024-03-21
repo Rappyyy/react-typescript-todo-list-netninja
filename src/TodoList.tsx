@@ -24,6 +24,14 @@ const handleToggle = (id:number) => {
   )
 }
 
+const handleClick = () => {
+  const newTodo: item = {id:Date.now(), text: input, completed:false}
+  setTodos([...todos, newTodo]);
+}
+
+
+const [input, setInput] = useState<string>("");
+
   return (
     <div className='main-container'>
       <h1>TodoList</h1>
@@ -35,8 +43,9 @@ const handleToggle = (id:number) => {
           </li>
        ))}
       </ul>
-      <input type="text" placeholder='Add todo item' />
-      <button>Add</button>
+      <input type="text" placeholder='Add todo item' 
+      onChange={(e) => setInput(e.currentTarget.value)} />
+      <button onClick={handleClick}>Add</button>
     </div>
   )
 }
