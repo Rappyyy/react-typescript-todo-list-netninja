@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button, TextField, Typography } from '@mui/material';
 
 interface Todo {
   id: number;
@@ -35,28 +36,32 @@ export const TodoList = () => {
     );
   };
 
+  const handleToggleEdit = (id: number) => {
+    const newText = prompt("Edit todo:", todos.find(todo => todo.id === id)?.text || "") || "";
+    if (newText.trim() !== "") {
+      handleEditTodo(id, newText);
+    }
+  };
+
   return (
     <div className='main-container'>
-      <h1>TodoList</h1>
+      <Typography variant="h4">TodoList</Typography>
       <ul>
         {todos.map((todo) => (
           <li key={todo.id}>
-            <input
-              type="text"
-              value={todo.text}
-              onChange={(e) => handleEditTodo(todo.id, e.target.value)}
-            />
-            <button onClick={() => handleDeleteTodo(todo.id)}>Delete</button>
+            <span>{todo.text}</span>
+            <Button variant="contained" onClick={() => handleToggleEdit(todo.id)}>Edit</Button>
+            <Button variant="contained" onClick={() => handleDeleteTodo(todo.id)}>Delete</Button>
           </li>
         ))}
       </ul>
-      <input
+      <TextField
         type="text"
-        placeholder='Add todo item'
+        label='Add todo item'
         value={input}
         onChange={(e) => setInput(e.currentTarget.value)}
       />
-      <button onClick={handleAddTodo}>Add</button>
+      <Button variant="contained" onClick={handleAddTodo}>Add</Button>
     </div>
   );
 };
