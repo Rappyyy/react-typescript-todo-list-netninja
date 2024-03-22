@@ -95,6 +95,12 @@ export const TodoList = () => {
                       >
                         Delete
                       </Button>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleDeleteTodo(todo.id)}
+                      >
+                        Delete
+                      </Button>
                     </Box>
                   </Box>
                 </ListItemText>
