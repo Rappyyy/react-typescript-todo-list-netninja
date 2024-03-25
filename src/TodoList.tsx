@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Grid,
@@ -6,8 +6,12 @@ import {
   Typography,
   Box,
   Paper,
-  List,
-  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 
 interface Todo {
@@ -16,33 +20,84 @@ interface Todo {
 }
 
 export const TodoList = () => {
-  const [todos, setTodos] = useState<Todo[]>([
-    { id: 1, text: "Learn Typescript with Georgie" },
-    { id: 2, text: "Build Todo List App" },
-  ]);
-
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState<string>("");
 
-  const handleAddTodo = () => {
-    if (input.trim() === "") return; // Prevent adding empty todos
-    const newTodo: Todo = { id: Date.now(), text: input.trim() };
-    setTodos([...todos, newTodo]);
-    setInput("");
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  const fetchTodos = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/todos");
+      if (!response.ok) {
+        throw new Error("Failed to fetch todos");
+      }
+      const data = await response.json();
+      setTodos(data);
+    } catch (error) {
+      console.error("Error fetching todos:", error);
+    }
   };
 
-  const handleDeleteTodo = (id: number) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+  const handleAddTodo = async () => {
+    if (input.trim() === "") return;
+    try {
+      const response = await fetch("http://localhost:3001/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: input.trim() }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add todo");
+      }
+      const newTodo = await response.json();
+      setTodos([...todos, newTodo]);
+      setInput("");
+    } catch (error) {
+      console.error("Error adding todo:", error);
+    }
   };
 
-  const handleEditTodo = (id: number, newText: string) => {
-    setTodos(
-      todos.map((todo) => {
-        if (todo.id === id) {
-          return { ...todo, text: newText.trim() };
-        }
-        return todo;
-      })
-    );
+  const handleDeleteTodo = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:3001/todos/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete todo");
+      }
+      setTodos(todos.filter((todo) => todo.id !== id));
+    } catch (error) {
+      console.error("Error deleting todo:", error);
+    }
+  };
+
+  const handleEditTodo = async (id: number, newText: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/todos/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: newText.trim() }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to edit todo");
+      }
+      setTodos(
+        todos.map((todo) => {
+          if (todo.id === id) {
+            return { ...todo, text: newText.trim() };
+          }
+          return todo;
+        })
+      );
+    } catch (error) {
+      console.error("Error editing todo:", error);
+    }
   };
 
   const handleToggleEdit = (id: number) => {
@@ -74,40 +129,60 @@ export const TodoList = () => {
             TodoList
           </Typography>
 
-          <Box sx={{ paddingInline: "50px", paddingBlock: "20px" }}>
-            <List sx={{ display: "grid", gap: "10px" }}>
-              {todos.map((todo) => (
-                <ListItemText key={todo.id}>
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="h6">{todo.text}</Typography>
-                    <Box sx={{ display: "flex", gap: "10px" }}>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleToggleEdit(todo.id)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleDeleteTodo(todo.id)}
-                      >
-                        Delete
-                      </Button>
-                    </Box>
-                  </Box>
-                </ListItemText>
-              ))}
-            </List>
+          <Box
+            sx={{
+              paddingInline: "50px",
+              paddingBlock: "20px",
+              marginTop: "10px",
+            }}
+          >
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID</TableCell>
+                    <TableCell>Todo</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {todos.map((todo) => (
+                    <TableRow key={todo.id}>
+                      <TableCell>{todo.id}</TableCell>
+                      <TableCell>{todo.text}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          onClick={() => handleToggleEdit(todo.id)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          sx={{ ml: 3 }}
+                          variant="contained"
+                          onClick={() => handleDeleteTodo(todo.id)}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <TextField
+                sx={{ mt: 2 }}
                 type="text"
-                label="Add todo item"
+                label="Add todo "
                 value={input}
                 onChange={(e) => setInput(e.currentTarget.value)}
               />
-              <Button variant="contained" onClick={handleAddTodo}>
+              <Button
+                sx={{ mt: 2 }}
+                variant="contained"
+                onClick={handleAddTodo}
+              >
                 Add
               </Button>
             </Box>
