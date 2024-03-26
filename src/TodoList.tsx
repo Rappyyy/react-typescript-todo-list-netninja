@@ -22,6 +22,7 @@ interface Todo {
 export const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     fetchTodos();
@@ -109,6 +110,16 @@ export const TodoList = () => {
     }
   };
 
+  const handleSearch = () => {
+    console.log("Search query:", searchQuery);
+
+    const filteredTodos = todos.filter((todo) =>
+      todo.text.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    setTodos(filteredTodos);
+  };
+
   return (
     <Grid
       container
@@ -136,6 +147,19 @@ export const TodoList = () => {
               marginTop: "10px",
             }}
           >
+            <TextField
+              type="text"
+              label="Search todo"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button
+              variant="contained"
+              onClick={handleSearch}
+              sx={{ ml: 2, mb: 4 }}
+            >
+              Search
+            </Button>
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
