@@ -13,16 +13,21 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-
-interface Todo {
-  id: number;
-  text: string;
-}
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addTodo,
+  deleteTodo,
+  editTodo,
+  searchTodos,
+  selectTodos,
+  setTodos, // Import setTodos action
+} from "./redux/todoSlice";
 
 export const TodoList = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [input, setInput] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [input, setInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const todos = useSelector(selectTodos);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     fetchTodos();
@@ -35,7 +40,7 @@ export const TodoList = () => {
         throw new Error("Failed to fetch todos");
       }
       const data = await response.json();
-      setTodos(data);
+      dispatch(setTodos(data)); // Dispatch setTodos action here
     } catch (error) {
       console.error("Error fetching todos:", error);
     }
@@ -55,7 +60,7 @@ export const TodoList = () => {
         throw new Error("Failed to add todo");
       }
       const newTodo = await response.json();
-      setTodos([...todos, newTodo]);
+      dispatch(addTodo(newTodo));
       setInput("");
     } catch (error) {
       console.error("Error adding todo:", error);
@@ -70,7 +75,7 @@ export const TodoList = () => {
       if (!response.ok) {
         throw new Error("Failed to delete todo");
       }
-      setTodos(todos.filter((todo) => todo.id !== id));
+      dispatch(deleteTodo(id));
     } catch (error) {
       console.error("Error deleting todo:", error);
     }
@@ -88,14 +93,7 @@ export const TodoList = () => {
       if (!response.ok) {
         throw new Error("Failed to edit todo");
       }
-      setTodos(
-        todos.map((todo) => {
-          if (todo.id === id) {
-            return { ...todo, text: newText.trim() };
-          }
-          return todo;
-        })
-      );
+      dispatch(editTodo({ id, newText }));
     } catch (error) {
       console.error("Error editing todo:", error);
     }
@@ -103,21 +101,14 @@ export const TodoList = () => {
 
   const handleToggleEdit = (id: number) => {
     const newText =
-      prompt("Edit todo:", todos.find((todo) => todo.id === id)?.text || "") ||
-      "";
+      prompt("Edit todo:", todos.find((todo) => todo.id === id)?.text) || "";
     if (newText.trim() !== "") {
       handleEditTodo(id, newText);
     }
   };
 
   const handleSearch = () => {
-    console.log("Search query:", searchQuery);
-
-    const filteredTodos = todos.filter((todo) =>
-      todo.text.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    setTodos(filteredTodos);
+    dispatch(searchTodos(searchQuery));
   };
 
   return (
